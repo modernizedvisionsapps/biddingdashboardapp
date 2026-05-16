@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import type { BidContractor, BidContractorContact, BidListRow, BidStatus } from "@/lib/db/types";
 import { BidFilters } from "./BidFilters";
 import { BidFormModal } from "./BidFormModal";
 import { BidTable } from "./BidTable";
-import type { BidContractor, BidContractorContact, BidListRow, BidStatus } from "@/lib/db/types";
 import {
   BID_STATUS_LABELS,
   type FollowUpFilter,
@@ -62,7 +62,7 @@ const STATUS_TABS: StatusTabConfig[] = [
     value: "active",
     label: "Bid Status",
     heading: "Bid Status Dashboard",
-    subheading: "Track active bids, follow-ups, contacts, and current notes.",
+    subheading: "Track active bids, follow-ups, contacts, and current project status in one place.",
     emptyTitle: "No active bids yet.",
     emptyMessage: "Add your first bid to start tracking follow-ups.",
   },
@@ -76,7 +76,7 @@ const STATUS_TABS: StatusTabConfig[] = [
   },
   {
     value: "awarded",
-    label: "Awarded",
+    label: "Awarded Jobs",
     heading: "Awarded Jobs",
     subheading: "Bids your company has won.",
     emptyTitle: "No awarded jobs yet.",
@@ -144,8 +144,21 @@ export function BidDashboard() {
       return;
     }
 
-    router.replace(`${pathname}?status=active`);
-  }, [pathname, router, statusFromUrl]);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("status", "active");
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [pathname, router, searchParams, statusFromUrl]);
+
+  useEffect(() => {
+    function openBidModal() {
+      setEditingBid(null);
+      setModalOpen(true);
+      setMessage(null);
+    }
+
+    window.addEventListener("bids:new", openBidModal);
+    return () => window.removeEventListener("bids:new", openBidModal);
+  }, []);
 
   const bidQueryString = useMemo(() => {
     const params = new URLSearchParams({
@@ -190,14 +203,21 @@ export function BidDashboard() {
     return summary;
   }, [bids]);
 
+  const highPriorityBids = useMemo(
+    () =>
+      bids.filter((bid) => {
+        const bucket = getFollowUpStatus(bid.next_follow_up_date).bucket;
+        return bucket === "due_today" || bucket === "overdue";
+      }),
+    [bids],
+  );
+
   async function loadDashboardData() {
     setLoading(true);
     setError(null);
 
     try {
-      const statusCountRequests = STATUS_TABS.map((tab) =>
-        fetch(`/api/bids?status=${tab.value}`, { cache: "no-store" }),
-      );
+      const statusCountRequests = STATUS_TABS.map((tab) => fetch(`/api/bids?status=${tab.value}`, { cache: "no-store" }));
 
       const [bidsResponse, contractorsResponse, contactsResponse, authResponse, ...statusResponses] = await Promise.all([
         fetch(`/api/bids?${bidQueryString}`, { cache: "no-store" }),
@@ -298,117 +318,219 @@ export function BidDashboard() {
 
   function handleModalSaved() {
     closeModal();
-    setMessage(editingBid ? "Bid updated." : "Bid created in Active.");
+    setMessage(editingBid ? "Bid updated." : "Bid created in Bid Status.");
     void loadDashboardData();
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-semibold">{selectedTab.heading}</h1>
-            <p className="max-w-3xl text-sm text-neutral-700">{selectedTab.subheading}</p>
-          </div>
-          <button
-            className="border border-black bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-neutral-500"
-            disabled={!canWrite}
-            onClick={openCreateModal}
-            type="button"
-          >
-            Add Bid
-          </button>
+    <div className="flex flex-col gap-6 pb-8">
+      <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-[family-name:var(--font-chivo)] text-4xl font-semibold tracking-tight text-[var(--app-primary)]">
+            {selectedTab.heading}
+          </h1>
+          <p className="max-w-3xl text-base text-[var(--app-text-muted)]">{selectedTab.subheading}</p>
         </div>
-        {message ? <p className="text-sm text-neutral-700">{message}</p> : null}
-        {!canWrite ? (
-          <p className="text-sm text-neutral-700">
-            This account is currently read-only. You can review bids and activity, but editing is disabled until billing is updated.
-          </p>
-        ) : null}
-      </div>
+        <button
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--app-primary)] bg-[var(--app-primary)] px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!canWrite}
+          onClick={openCreateModal}
+          type="button"
+        >
+          Add Bid
+        </button>
+      </section>
 
-      <div className="flex flex-wrap gap-2 border-b border-black pb-3">
-        {STATUS_TABS.map((tab) => {
-          const isSelected = tab.value === selectedStatus;
-
-          return (
-            <button
-              className={`border px-4 py-2 text-sm font-medium ${
-                isSelected ? "border-black bg-black text-white" : "border-black bg-white text-black"
-              }`}
-              key={tab.value}
-              onClick={() => handleSelectStatus(tab.value)}
-              type="button"
-            >
-              {tab.label} <span className="ml-1 text-xs opacity-80">({statusCounts[tab.value]})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-        {STATUS_TABS.map((tab) => (
-          <div className="border border-black bg-white p-4" key={tab.value}>
-            <p className="text-xs uppercase tracking-wide text-neutral-600">{BID_STATUS_LABELS[tab.value]}</p>
-            <p className="mt-2 text-2xl font-semibold">{statusCounts[tab.value]}</p>
-          </div>
-        ))}
-        <div className="border border-black bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-neutral-600">Due Today</p>
-          <p className="mt-2 text-2xl font-semibold">{currentStatusSummary.dueToday}</p>
-        </div>
-        <div className="border border-black bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-neutral-600">Overdue</p>
-          <p className="mt-2 text-2xl font-semibold">{currentStatusSummary.overdue}</p>
-        </div>
-      </div>
-
-      <BidFilters
-        followUpFilter={followUpFilter}
-        loading={loading}
-        onApply={() => setAppliedSearch(searchInput)}
-        onFollowUpFilterChange={setFollowUpFilter}
-        onRefresh={() => void loadDashboardData()}
-        onSearchValueChange={setSearchInput}
-        onSortByChange={setSortBy}
-        onSortDirectionChange={setSortDirection}
-        searchValue={searchInput}
-        sortBy={sortBy}
-        sortDirection={sortDirection}
-      />
-
-      {loading ? (
-        <div className="border border-black bg-white px-4 py-8">
-          <p>Loading {selectedTab.label.toLowerCase()}...</p>
+      {message ? (
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-text)] shadow-sm">
+          {message}
         </div>
       ) : null}
 
-      {!loading && error ? (
-        <div className="border border-black bg-white px-4 py-8">
-          <p className="text-red-700">{error}</p>
+      {!canWrite ? (
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-text-muted)] shadow-sm">
+          This account is currently read-only. You can review bids and activity, but editing is disabled until billing is updated.
         </div>
       ) : null}
 
-      {!loading && !error && visibleBids.length === 0 ? (
-        <div className="border border-black bg-white px-4 py-8">
-          <h2 className="text-lg font-semibold">
-            {bids.length === 0 ? selectedTab.emptyTitle : "No bids match the current follow-up filter."}
-          </h2>
-          <p className="mt-2 text-sm text-neutral-700">
-            {bids.length === 0 ? selectedTab.emptyMessage : "Try another urgency filter or refresh the list."}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">Active Bids</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-primary)]">
+            {statusCounts.active}
           </p>
         </div>
-      ) : null}
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">Pending Award</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-primary)]">
+            {statusCounts.pending_award}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">Awarded</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-primary)]">
+            {statusCounts.awarded}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-[var(--app-accent)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-warning)]">Due Today</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-warning)]">
+            {currentStatusSummary.dueToday}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-[var(--app-danger)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-danger)]">Overdue</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-danger)]">
+            {currentStatusSummary.overdue}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">On Hold</p>
+          <p className="mt-3 font-[family-name:var(--font-chivo)] text-3xl font-semibold text-[var(--app-primary)]">
+            {statusCounts.on_hold}
+          </p>
+        </div>
+      </section>
 
-      {!loading && !error && visibleBids.length > 0 ? (
-        <BidTable
-          bids={visibleBids}
-          onEdit={openEditModal}
-          onStatusChange={handleStatusChange}
-          statusUpdatingId={statusUpdatingId}
-          writeDisabled={!canWrite}
-        />
-      ) : null}
+      <section className="overflow-hidden rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] shadow-sm">
+        <div className="flex flex-wrap gap-1 overflow-x-auto border-b border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4">
+          {STATUS_TABS.map((tab) => {
+            const isSelected = tab.value === selectedStatus;
+            return (
+              <button
+                className={`whitespace-nowrap border-b-2 px-4 py-4 text-sm font-medium transition ${
+                  isSelected
+                    ? "border-[var(--app-accent)] text-[var(--app-primary)]"
+                    : "border-transparent text-[var(--app-text-muted)] hover:text-[var(--app-primary)]"
+                }`}
+                key={tab.value}
+                onClick={() => handleSelectStatus(tab.value)}
+                type="button"
+              >
+                {tab.label} <span className="ml-1 text-xs text-[var(--app-text-muted)]">({statusCounts[tab.value]})</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="border-b border-[var(--app-border)] px-4 py-4">
+          <BidFilters
+            followUpFilter={followUpFilter}
+            loading={loading}
+            onApply={() => setAppliedSearch(searchInput)}
+            onFollowUpFilterChange={setFollowUpFilter}
+            onRefresh={() => void loadDashboardData()}
+            onSearchValueChange={setSearchInput}
+            onSortByChange={setSortBy}
+            onSortDirectionChange={setSortDirection}
+            searchValue={searchInput}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+          />
+        </div>
+
+        <div className="px-4 py-4">
+          {loading ? (
+            <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-6 py-10 text-sm text-[var(--app-text-muted)]">
+              Loading {selectedTab.label.toLowerCase()}...
+            </div>
+          ) : null}
+
+          {!loading && error ? (
+            <div className="rounded-[24px] border border-[var(--app-danger)] bg-[var(--app-danger-soft)] px-6 py-10 text-sm text-[var(--app-danger)]">
+              {error}
+            </div>
+          ) : null}
+
+          {!loading && !error && visibleBids.length === 0 ? (
+            <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-6 py-10">
+              <h2 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+                {bids.length === 0 ? selectedTab.emptyTitle : "No bids match the current follow-up filter."}
+              </h2>
+              <p className="mt-2 text-sm text-[var(--app-text-muted)]">
+                {bids.length === 0 ? selectedTab.emptyMessage : "Try another urgency filter or refresh the list."}
+              </p>
+            </div>
+          ) : null}
+
+          {!loading && !error && visibleBids.length > 0 ? (
+            <BidTable
+              bids={visibleBids}
+              onEdit={openEditModal}
+              onStatusChange={handleStatusChange}
+              statusUpdatingId={statusUpdatingId}
+              writeDisabled={!canWrite}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+                High-Priority Follow-Ups
+              </h3>
+              <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+                Due today and overdue bids pulled from the current status view.
+              </p>
+            </div>
+            <span className="rounded-full bg-[var(--app-surface-muted)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">
+              {highPriorityBids.length} items
+            </span>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3">
+            {highPriorityBids.length === 0 ? (
+              <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 py-6 text-sm text-[var(--app-text-muted)]">
+                No high-priority follow-ups in this status view right now.
+              </div>
+            ) : (
+              highPriorityBids.slice(0, 5).map((bid) => {
+                const followUp = getFollowUpStatus(bid.next_follow_up_date);
+                return (
+                  <button
+                    className="flex items-start justify-between gap-4 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 py-4 text-left transition hover:border-[var(--app-border-strong)]"
+                    key={bid.id}
+                    onClick={() => openEditModal(bid)}
+                    type="button"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium text-[var(--app-primary)]">{bid.project_name}</span>
+                      <span className="text-sm text-[var(--app-text-muted)]">{BID_STATUS_LABELS[bid.status]}</span>
+                    </div>
+                    <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${followUp.toneClassName}`}>
+                      {followUp.label}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
+          <h3 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+            Pipeline Snapshot
+          </h3>
+          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+            Current counts by bid status using the shared bid table and existing status filters.
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {STATUS_TABS.map((tab) => (
+              <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-4" key={tab.value}>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">
+                  {BID_STATUS_LABELS[tab.value]}
+                </p>
+                <p className="mt-2 font-[family-name:var(--font-chivo)] text-2xl font-semibold text-[var(--app-primary)]">
+                  {statusCounts[tab.value]}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <BidFormModal
         bid={editingBid}

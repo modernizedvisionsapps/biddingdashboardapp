@@ -50,22 +50,34 @@ export function AuthStatus({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   if (error) {
-    return <p>{error}</p>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] px-6">
+        <p className="rounded-2xl border border-[var(--app-danger)] bg-[var(--app-danger-soft)] px-5 py-4 text-sm text-[var(--app-danger)]">
+          {error}
+        </p>
+      </div>
+    );
   }
 
   if (!state) {
-    return <p>Loading...</p>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] px-6">
+        <p className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-4 text-sm text-[var(--app-text-muted)] shadow-sm">
+          Loading...
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       {state.permissions && !state.permissions.canWrite ? (
-        <div className="border-b border-black px-6 py-3 text-sm">
+        <div className="border-b border-[var(--app-border)] bg-[var(--app-accent-soft)] px-6 py-3 text-sm text-[var(--app-warning)]">
           Your subscription is not current. You can view existing data, but editing and automations are disabled.
           {state.permissions.isOwner ? (
             <>
               {" "}
-              <Link className="underline" href="/app/settings/billing">
+              <Link className="font-medium underline" href="/app/settings/billing">
                 Manage billing
               </Link>
             </>

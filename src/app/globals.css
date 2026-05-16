@@ -1,15 +1,43 @@
+:root {
+  --app-bg: #f6f7f3;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f1f3f7;
+  --app-border: #d6dbe4;
+  --app-border-strong: #b8c0cd;
+  --app-text: #142033;
+  --app-text-muted: #5f6b7d;
+  --app-primary: #0f1c2f;
+  --app-primary-soft: #e4ebf7;
+  --app-accent: #d98b2b;
+  --app-accent-soft: #fff0db;
+  --app-success: #2e7d5a;
+  --app-success-soft: #e8f7ef;
+  --app-danger: #b3473a;
+  --app-danger-soft: #fceae6;
+  --app-warning: #9a5a12;
+  --app-warning-soft: #fff1da;
+  --app-muted: #6c7686;
+  --app-muted-soft: #eef1f5;
+  --app-shadow: 0 16px 38px rgba(15, 28, 47, 0.08);
+}
+
 html,
 body {
   min-height: 100%;
 }
 
 body {
-  background: #ffffff;
-  color: #000000;
-  font-family: Calibri, Arial, Helvetica, sans-serif;
   margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-inter, Inter), Arial, Helvetica, sans-serif;
 }
 
 a {
   color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
 }

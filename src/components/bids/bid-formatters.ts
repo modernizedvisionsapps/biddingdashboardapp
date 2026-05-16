@@ -21,11 +21,8 @@ export function formatCurrency(cents: number | null) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    maximumFractionDigits: 2,
   }).format(cents / 100);
-}
-
-export function formatDateOnly(value: string | null) {
-  return value || "—";
 }
 
 function parseDateOnly(value: string | null) {
@@ -38,10 +35,24 @@ function parseDateOnly(value: string | null) {
     return null;
   }
 
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  return new Date(year, month - 1, day);
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+export function formatDateOnly(value: string | null) {
+  if (!value) {
+    return "—";
+  }
+
+  const parsed = parseDateOnly(value);
+  if (!parsed) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function startOfToday() {
@@ -62,8 +73,8 @@ export function getFollowUpStatus(value: string | null): {
   if (!value) {
     return {
       bucket: "no_follow_up",
-      label: "No follow-up set",
-      toneClassName: "border-neutral-300 bg-neutral-100 text-neutral-700",
+      label: "No Follow-Up",
+      toneClassName: "border-[var(--app-border)] bg-[var(--app-muted-soft)] text-[var(--app-text-muted)]",
     };
   }
 
@@ -72,7 +83,7 @@ export function getFollowUpStatus(value: string | null): {
     return {
       bucket: "all",
       label: "Scheduled",
-      toneClassName: "border-neutral-300 bg-neutral-100 text-neutral-700",
+      toneClassName: "border-[var(--app-border)] bg-[var(--app-muted-soft)] text-[var(--app-text-muted)]",
     };
   }
 
@@ -83,15 +94,15 @@ export function getFollowUpStatus(value: string | null): {
     return {
       bucket: "overdue",
       label: "Overdue",
-      toneClassName: "border-red-300 bg-red-100 text-red-800",
+      toneClassName: "border-[var(--app-danger)] bg-[var(--app-danger-soft)] text-[var(--app-danger)]",
     };
   }
 
   if (diff === 0) {
     return {
       bucket: "due_today",
-      label: "Due today",
-      toneClassName: "border-amber-300 bg-amber-100 text-amber-900",
+      label: "Due Today",
+      toneClassName: "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-warning)]",
     };
   }
 
@@ -99,22 +110,22 @@ export function getFollowUpStatus(value: string | null): {
     return {
       bucket: "this_week",
       label: "Tomorrow",
-      toneClassName: "border-blue-300 bg-blue-100 text-blue-900",
+      toneClassName: "border-[#c7d7f4] bg-[var(--app-primary-soft)] text-[var(--app-primary)]",
     };
   }
 
   if (diff <= 7) {
     return {
       bucket: "this_week",
-      label: "This week",
-      toneClassName: "border-blue-300 bg-blue-100 text-blue-900",
+      label: "This Week",
+      toneClassName: "border-[#c7d7f4] bg-[var(--app-primary-soft)] text-[var(--app-primary)]",
     };
   }
 
   return {
     bucket: "all",
     label: "Scheduled",
-    toneClassName: "border-neutral-300 bg-neutral-100 text-neutral-700",
+    toneClassName: "border-[var(--app-border)] bg-[var(--app-muted-soft)] text-[var(--app-text-muted)]",
   };
 }
 

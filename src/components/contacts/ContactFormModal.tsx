@@ -119,88 +119,115 @@ export function ContactFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 py-8">
-      <div className="w-full max-w-2xl border border-black bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-black px-5 py-4">
+    <div className="fixed inset-0 z-50 bg-[rgba(9,20,38,0.45)]">
+      <div className="absolute inset-0" onClick={onClose} />
+      <div className="absolute inset-y-0 right-0 w-full max-w-2xl overflow-y-auto border-l border-[var(--app-border)] bg-[var(--app-bg)] shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--app-border)] bg-[rgba(246,247,243,0.96)] px-6 py-5 backdrop-blur">
           <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold">{contact ? "Edit Contact" : "Add Contact"}</h2>
-            <p className="text-sm text-neutral-700">Save a person under the selected contractor for faster bid entry later.</p>
+            <h2 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+              {contact ? "Edit Contact" : "Add Contact"}
+            </h2>
+            <p className="text-sm text-[var(--app-text-muted)]">
+              Save a person under the selected contractor for faster bid entry later.
+            </p>
           </div>
-          <button className="border border-black px-3 py-2" onClick={onClose} type="button">
+          <button
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-border)] bg-white px-4 text-sm font-medium text-[var(--app-text)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
+            onClick={onClose}
+            type="button"
+          >
             Close
           </button>
         </div>
 
-        <form className="flex flex-col gap-4 px-5 py-5" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <form className="flex flex-col gap-5 px-6 py-6" onSubmit={handleSubmit}>
+          <section className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-semibold text-[var(--app-text)]">First Name</span>
+                <input
+                  className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                  disabled={submitting}
+                  onChange={(event) => setValues((current) => ({ ...current, firstName: event.target.value }))}
+                  value={values.firstName}
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-semibold text-[var(--app-text)]">Last Name</span>
+                <input
+                  className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                  disabled={submitting}
+                  onChange={(event) => setValues((current) => ({ ...current, lastName: event.target.value }))}
+                  value={values.lastName}
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-semibold text-[var(--app-text)]">Title</span>
+                <input
+                  className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                  disabled={submitting}
+                  onChange={(event) => setValues((current) => ({ ...current, title: event.target.value }))}
+                  value={values.title}
+                />
+              </label>
+
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-semibold text-[var(--app-text)]">Phone</span>
+                <input
+                  className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                  disabled={submitting}
+                  onChange={(event) => setValues((current) => ({ ...current, phone: event.target.value }))}
+                  value={values.phone}
+                />
+              </label>
+
+              <label className="flex flex-col gap-2 md:col-span-2">
+                <span className="text-sm font-semibold text-[var(--app-text)]">Email</span>
+                <input
+                  className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                  disabled={submitting}
+                  onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
+                  value={values.email}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
             <label className="flex flex-col gap-2">
-              <span className="font-medium">First Name</span>
-              <input
-                className="border border-black px-3 py-2"
-                onChange={(event) => setValues((current) => ({ ...current, firstName: event.target.value }))}
-                value={values.firstName}
+              <span className="text-sm font-semibold text-[var(--app-text)]">Notes</span>
+              <textarea
+                className="min-h-36 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--app-primary)] focus:bg-white"
+                disabled={submitting}
+                onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))}
+                value={values.notes}
               />
             </label>
+          </section>
 
-            <label className="flex flex-col gap-2">
-              <span className="font-medium">Last Name</span>
-              <input
-                className="border border-black px-3 py-2"
-                onChange={(event) => setValues((current) => ({ ...current, lastName: event.target.value }))}
-                value={values.lastName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-2">
-              <span className="font-medium">Title</span>
-              <input
-                className="border border-black px-3 py-2"
-                onChange={(event) => setValues((current) => ({ ...current, title: event.target.value }))}
-                value={values.title}
-              />
-            </label>
-
-            <label className="flex flex-col gap-2">
-              <span className="font-medium">Phone</span>
-              <input
-                className="border border-black px-3 py-2"
-                onChange={(event) => setValues((current) => ({ ...current, phone: event.target.value }))}
-                value={values.phone}
-              />
-            </label>
-
-            <label className="flex flex-col gap-2 md:col-span-2">
-              <span className="font-medium">Email</span>
-              <input
-                className="border border-black px-3 py-2"
-                onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
-                value={values.email}
-              />
-            </label>
-          </div>
-
-          <label className="flex flex-col gap-2">
-            <span className="font-medium">Notes</span>
-            <textarea
-              className="min-h-28 border border-black px-3 py-2"
-              onChange={(event) => setValues((current) => ({ ...current, notes: event.target.value }))}
-              value={values.notes}
-            />
-          </label>
-
-          {message ? <p className="text-sm text-red-700">{message}</p> : null}
+          {message ? (
+            <div className="rounded-2xl border border-[var(--app-danger)] bg-[var(--app-danger-soft)] px-4 py-3 text-sm text-[var(--app-danger)]">
+              {message}
+            </div>
+          ) : null}
           {writeDisabled ? (
-            <p className="text-sm text-neutral-700">
+            <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-text-muted)]">
               This account is currently read-only. You can review contacts, but saving changes is disabled until billing is updated.
-            </p>
+            </div>
           ) : null}
 
-          <div className="flex items-center justify-end gap-3 border-t border-black pt-4">
-            <button className="border border-black px-4 py-2" onClick={onClose} type="button">
+          <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-[var(--app-border)] bg-[rgba(246,247,243,0.96)] py-4 backdrop-blur">
+            <button
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-border)] bg-white px-4 text-sm font-medium text-[var(--app-text)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
+              onClick={onClose}
+              type="button"
+            >
               Cancel
             </button>
             <button
-              className="border border-black bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-neutral-500"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-primary)] bg-[var(--app-primary)] px-5 text-sm font-medium text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={submitting || writeDisabled}
               type="submit"
             >

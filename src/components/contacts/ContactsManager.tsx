@@ -207,8 +207,8 @@ export function ContactsManager() {
         setSelectedContractorId(null);
       }
       await loadBaseData();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Failed to delete contractor.");
+    } catch (deleteError) {
+      setMessage(deleteError instanceof Error ? deleteError.message : "Failed to delete contractor.");
     }
   }
 
@@ -236,8 +236,8 @@ export function ContactsManager() {
       if (selectedContractorId) {
         await loadSelectedContacts(selectedContractorId);
       }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Failed to delete contact.");
+    } catch (deleteError) {
+      setMessage(deleteError instanceof Error ? deleteError.message : "Failed to delete contact.");
     }
   }
 
@@ -260,38 +260,47 @@ export function ContactsManager() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-col gap-6 pb-8">
+      <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-semibold">Contacts</h1>
-          <p className="max-w-3xl text-sm text-neutral-700">
+          <h1 className="font-[family-name:var(--font-chivo)] text-4xl font-semibold tracking-tight text-[var(--app-primary)]">
+            Contacts
+          </h1>
+          <p className="max-w-3xl text-base text-[var(--app-text-muted)]">
             Manage general contractors and the people tied to each company.
           </p>
         </div>
         <button
-          className="border border-black bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-neutral-500"
+          className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[var(--app-primary)] bg-[var(--app-primary)] px-5 text-sm font-medium text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!canWrite}
           onClick={openCreateContractor}
           type="button"
         >
           Add Contractor
         </button>
-      </div>
+      </section>
 
-      {message ? <p className="text-sm text-neutral-700">{message}</p> : null}
-      {!canWrite ? (
-        <p className="text-sm text-neutral-700">
-          This account is currently read-only. You can review contractors and contacts, but editing is disabled until billing is updated.
-        </p>
+      {message ? (
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-text)] shadow-sm">
+          {message}
+        </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]">
+      {!canWrite ? (
+        <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm text-[var(--app-text-muted)] shadow-sm">
+          This account is currently read-only. You can review contractors and contacts, but editing is disabled until billing is updated.
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
         <section className="flex flex-col gap-4">
-          <div className="border border-black bg-white p-4">
+          <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm">
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Search Contractors</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--app-text-muted)]">
+                Search Contractors
+              </span>
               <input
-                className="border border-black px-3 py-2"
+                className="min-h-11 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-4 text-sm outline-none transition placeholder:text-[var(--app-text-muted)] focus:border-[var(--app-primary)] focus:bg-white"
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Name, email, phone, website, or notes"
                 value={search}
@@ -300,19 +309,19 @@ export function ContactsManager() {
           </div>
 
           {loading ? (
-            <div className="border border-black bg-white px-4 py-8">
-              <p>Loading contractors...</p>
+            <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-10 text-sm text-[var(--app-text-muted)] shadow-sm">
+              Loading contractors...
             </div>
           ) : error ? (
-            <div className="border border-black bg-white px-4 py-8">
-              <p className="text-red-700">{error}</p>
+            <div className="rounded-[24px] border border-[var(--app-danger)] bg-[var(--app-danger-soft)] px-5 py-10 text-sm text-[var(--app-danger)] shadow-sm">
+              {error}
             </div>
           ) : filteredContractors.length === 0 ? (
-            <div className="border border-black bg-white px-4 py-8">
-              <h2 className="text-lg font-semibold">
+            <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-10 shadow-sm">
+              <h2 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
                 {contractors.length === 0 ? "No contractors yet." : "No contractors match that search."}
               </h2>
-              <p className="mt-2 text-sm text-neutral-700">
+              <p className="mt-2 text-sm text-[var(--app-text-muted)]">
                 {contractors.length === 0
                   ? "Add your first GC to start building your contact list."
                   : "Try a different search to find a contractor by name, email, phone, website, or notes."}
@@ -325,27 +334,33 @@ export function ContactsManager() {
 
                 return (
                   <button
-                    className={`flex flex-col gap-2 border p-4 text-left ${
-                      isSelected ? "border-black bg-neutral-100 shadow-sm" : "border-black bg-white hover:bg-neutral-50"
+                    className={`rounded-[24px] border p-5 text-left shadow-sm transition ${
+                      isSelected
+                        ? "border-[var(--app-primary)] bg-[var(--app-primary)] text-white"
+                        : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:border-[var(--app-border-strong)] hover:bg-[#fbfcfe]"
                     }`}
                     key={contractor.id}
                     onClick={() => setSelectedContractorId(contractor.id)}
                     type="button"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-semibold">{contractor.name}</span>
-                        <span className="text-xs text-neutral-700">
-                          {contactCountByContractor.get(contractor.id) ?? 0} contact
-                          {(contactCountByContractor.get(contractor.id) ?? 0) === 1 ? "" : "s"}
-                        </span>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-[family-name:var(--font-chivo)] text-xl font-semibold tracking-tight">
+                            {contractor.name}
+                          </span>
+                          <span className={`text-xs ${isSelected ? "text-white/75" : "text-[var(--app-text-muted)]"}`}>
+                            {contactCountByContractor.get(contractor.id) ?? 0} contact
+                            {(contactCountByContractor.get(contractor.id) ?? 0) === 1 ? "" : "s"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-1 text-sm text-neutral-700">
-                      <span>{contractor.main_email ?? "No main email"}</span>
-                      <span>{contractor.main_phone ?? "No main phone"}</span>
-                      <span>{contractor.website ?? "No website"}</span>
-                      <span>{previewText(contractor.notes, "No notes")}</span>
+                      <div className={`grid gap-1 text-sm ${isSelected ? "text-white/85" : "text-[var(--app-text-muted)]"}`}>
+                        <span>{contractor.main_email ?? "No main email"}</span>
+                        <span>{contractor.main_phone ?? "No main phone"}</span>
+                        <span>{contractor.website ?? "No website"}</span>
+                        <span>{previewText(contractor.notes, "No notes")}</span>
+                      </div>
                     </div>
                   </button>
                 );
@@ -356,28 +371,35 @@ export function ContactsManager() {
 
         <section className="flex flex-col gap-4">
           {!selectedContractor ? (
-            <div className="border border-black bg-white px-4 py-8">
-              <h2 className="text-lg font-semibold">Select a contractor to view contacts.</h2>
+            <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] px-6 py-10 shadow-sm">
+              <h2 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+                Select a contractor to view contacts.
+              </h2>
             </div>
           ) : (
             <>
-              <div className="border border-black bg-white p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex flex-col gap-2">
-                    <h2 className="text-2xl font-semibold">{selectedContractor.name}</h2>
-                    <div className="grid grid-cols-1 gap-2 text-sm text-neutral-700 md:grid-cols-2">
+              <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-6 shadow-sm">
+                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <h2 className="font-[family-name:var(--font-chivo)] text-3xl font-semibold tracking-tight text-[var(--app-primary)]">
+                        {selectedContractor.name}
+                      </h2>
+                      <p className="mt-2 max-w-3xl text-sm text-[var(--app-text-muted)]">
+                        {previewText(selectedContractor.notes, "No contractor notes yet.", 240)}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 text-sm text-[var(--app-text-muted)] md:grid-cols-2">
                       <span>Email: {selectedContractor.main_email ?? "—"}</span>
                       <span>Phone: {selectedContractor.main_phone ?? "—"}</span>
                       <span>Website: {selectedContractor.website ?? "—"}</span>
                       <span>Saved contacts: {contactCountByContractor.get(selectedContractor.id) ?? 0}</span>
                     </div>
-                    <p className="text-sm text-neutral-700">
-                      {previewText(selectedContractor.notes, "No contractor notes yet.", 240)}
-                    </p>
                   </div>
+
                   <div className="flex flex-wrap gap-2">
                     <button
-                      className="border border-black px-3 py-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-border)] bg-white px-4 text-sm font-medium text-[var(--app-primary)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!canWrite}
                       onClick={() => openEditContractor(selectedContractor)}
                       type="button"
@@ -385,7 +407,7 @@ export function ContactsManager() {
                       Edit Contractor
                     </button>
                     <button
-                      className="border border-black px-3 py-2 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-primary)] bg-[var(--app-primary)] px-4 text-sm font-medium text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!canWrite}
                       onClick={openCreateContact}
                       type="button"
@@ -393,7 +415,7 @@ export function ContactsManager() {
                       Add Contact
                     </button>
                     <button
-                      className="border border-black px-3 py-2 text-red-700 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+                      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--app-danger)] bg-white px-4 text-sm font-medium text-[var(--app-danger)] transition hover:bg-[var(--app-danger-soft)] disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!canWrite}
                       onClick={() => void handleDeleteContractor(selectedContractor)}
                       type="button"
@@ -405,29 +427,36 @@ export function ContactsManager() {
               </div>
 
               {contactsLoading ? (
-                <div className="border border-black bg-white px-4 py-8">
-                  <p>Loading contacts...</p>
+                <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-10 text-sm text-[var(--app-text-muted)] shadow-sm">
+                  Loading contacts...
                 </div>
               ) : contactsError ? (
-                <div className="border border-black bg-white px-4 py-8">
-                  <p className="text-red-700">{contactsError}</p>
+                <div className="rounded-[24px] border border-[var(--app-danger)] bg-[var(--app-danger-soft)] px-5 py-10 text-sm text-[var(--app-danger)] shadow-sm">
+                  {contactsError}
                 </div>
               ) : selectedContacts.length === 0 ? (
-                <div className="border border-black bg-white px-4 py-8">
-                  <h3 className="text-lg font-semibold">No contacts saved for this contractor yet.</h3>
+                <div className="rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-10 shadow-sm">
+                  <h3 className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-primary)]">
+                    No contacts saved for this contractor yet.
+                  </h3>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {selectedContacts.map((contact) => (
-                    <div className="flex flex-col gap-3 border border-black bg-white p-4" key={contact.id}>
+                    <article
+                      className="flex flex-col gap-4 rounded-[24px] border border-[var(--app-border)] bg-[var(--app-surface)] p-5 shadow-sm"
+                      key={contact.id}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex flex-col gap-1">
-                          <h3 className="font-semibold">{getContactName(contact)}</h3>
-                          <span className="text-sm text-neutral-700">{contact.title ?? "No title"}</span>
+                          <h3 className="font-[family-name:var(--font-chivo)] text-xl font-semibold tracking-tight text-[var(--app-primary)]">
+                            {getContactName(contact)}
+                          </h3>
+                          <span className="text-sm text-[var(--app-text-muted)]">{contact.title ?? "No title"}</span>
                         </div>
                         <div className="flex gap-2">
                           <button
-                            className="border border-black px-3 py-1 text-sm disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+                            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[var(--app-border)] px-3 text-sm font-medium text-[var(--app-primary)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!canWrite}
                             onClick={() => openEditContact(contact)}
                             type="button"
@@ -435,7 +464,7 @@ export function ContactsManager() {
                             Edit
                           </button>
                           <button
-                            className="border border-black px-3 py-1 text-sm text-red-700 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500"
+                            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[var(--app-danger)] px-3 text-sm font-medium text-[var(--app-danger)] transition hover:bg-[var(--app-danger-soft)] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!canWrite}
                             onClick={() => void handleDeleteContact(contact)}
                             type="button"
@@ -445,9 +474,9 @@ export function ContactsManager() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-1 text-sm text-neutral-700">
+                      <div className="flex flex-col gap-2 text-sm text-[var(--app-text-muted)]">
                         {contact.email ? (
-                          <a className="underline" href={`mailto:${contact.email}`}>
+                          <a className="hover:text-[var(--app-primary)] hover:underline" href={`mailto:${contact.email}`}>
                             {contact.email}
                           </a>
                         ) : (
@@ -455,7 +484,7 @@ export function ContactsManager() {
                         )}
 
                         {contact.phone ? (
-                          <a className="underline" href={`tel:${contact.phone}`}>
+                          <a className="hover:text-[var(--app-primary)] hover:underline" href={`tel:${contact.phone}`}>
                             {contact.phone}
                           </a>
                         ) : (
@@ -464,7 +493,7 @@ export function ContactsManager() {
 
                         <span>{previewText(contact.notes, "No notes")}</span>
                       </div>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}
