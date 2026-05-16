@@ -15,6 +15,7 @@ export type MembershipStatus = "active" | "removed" | "invited";
 
 export type EmailLogStatus = "pending" | "sent" | "failed";
 export type BillingEventStatus = "received" | "processed" | "failed";
+export type BidStatus = "active" | "pending_award" | "awarded" | "lost" | "on_hold";
 
 export interface User {
   id: string;
@@ -149,4 +150,82 @@ export interface ActivityLog {
   entity_id: string | null;
   metadata_json: string | null;
   created_at: string;
+}
+
+export interface BidContractor {
+  id: string;
+  organization_id: string;
+  name: string;
+  website: string | null;
+  main_phone: string | null;
+  main_email: string | null;
+  notes: string | null;
+  created_by_user_id: string | null;
+  updated_by_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BidContractorContact {
+  id: string;
+  organization_id: string;
+  contractor_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+  created_by_user_id: string | null;
+  updated_by_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Bid {
+  id: string;
+  organization_id: string;
+  project_name: string;
+  bid_amount_cents: number | null;
+  contractor_id: string | null;
+  contact_id: string | null;
+  manual_contractor_name: string | null;
+  manual_contact_name: string | null;
+  manual_contact_phone: string | null;
+  manual_contact_email: string | null;
+  date_submitted: string | null;
+  last_followed_up_date: string | null;
+  next_follow_up_date: string | null;
+  status: BidStatus;
+  notes: string | null;
+  responsible_user_id: string | null;
+  created_by_user_id: string | null;
+  updated_by_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BidActivityLog {
+  id: string;
+  organization_id: string;
+  bid_id: string;
+  user_id: string | null;
+  action: string;
+  field_name: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  message: string | null;
+  metadata_json: string | null;
+  created_at: string;
+}
+
+export interface BidListRow extends Bid {
+  contractor_name: string | null;
+  contact_first_name: string | null;
+  contact_last_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  responsible_user_display_name: string | null;
+  created_by_display_name: string | null;
+  updated_by_display_name: string | null;
 }
