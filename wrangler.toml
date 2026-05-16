@@ -1,0 +1,21 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
+
+name = "modernized-visions-saas-template"
+main = ".open-next/worker.js"
+compatibility_date = "2026-05-16"
+compatibility_flags = ["nodejs_compat"]
+keep_vars = true
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# Keep production variables and secrets in the Cloudflare dashboard.
+# `keep_vars = true` preserves dashboard-managed text variables during deploys.
+# `npm run cf:deploy` also passes `--keep-vars` as a CLI safeguard.
+#
+# Wrangler-managed D1 binding for this app.
+[[d1_databases]]
+binding = "DB"
+database_name = "apptemplate-db"
+database_id = "a1a4d5cf-ba68-4fad-af71-68c1767b6aec"
