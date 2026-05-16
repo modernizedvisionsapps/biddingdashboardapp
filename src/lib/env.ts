@@ -53,7 +53,7 @@ function readNumber(name: string, fallback: number, runtimeEnv?: RuntimeEnvSourc
 
 export function getPublicEnv() {
   return {
-    appName: readOptionalEnv("PUBLIC_APP_NAME", "Modernized Visions SaaS Template") ?? "Modernized Visions SaaS Template",
+    appName: readOptionalEnv("PUBLIC_APP_NAME", "BidBoard") ?? "BidBoard",
     companyName: readOptionalEnv("PUBLIC_COMPANY_NAME", "Modernized Visions") ?? "Modernized Visions",
     supportEmail: readOptionalEnv("PUBLIC_SUPPORT_EMAIL", "team@modernizedvisions.agency") ?? "team@modernizedvisions.agency",
   };

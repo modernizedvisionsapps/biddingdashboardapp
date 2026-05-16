@@ -8,13 +8,22 @@ export function buildAccountSetupEmail(input: {
 }) {
   const subject = `Set up your ${input.appName} account`;
   const bodyHtml = `
-    <p>Your app account is ready.</p>
-    <p>Click below to set up your account. This link will expire.</p>
+    <p style="margin:0 0 16px;">Welcome to ${escapeHtml(input.appName)}. Your company workspace is ready.</p>
+    <p style="margin:0 0 16px;">Click below to create your password and finish setting up your account.</p>
     ${linkButton("Set Up Account", input.setupUrl)}
-    <p>If you did not expect this, you can ignore this email.</p>
+    <p style="margin:0 0 16px;">This setup link is unique to your account. If you did not request this, you can ignore this email.</p>
+    <p style="margin:0;">If the button does not work, copy and paste this link into your browser:<br /><a href="${escapeHtml(input.setupUrl)}" style="color:#0f1c2f;word-break:break-all;">${escapeHtml(input.setupUrl)}</a></p>
   `;
   const html = baseEmailLayout({ title: subject, bodyHtml });
-  return { subject, html, text: buildPlainTextFromHtml(html) };
+  const text = [
+    `Welcome to ${input.appName}.`,
+    "",
+    "Your company workspace is ready. Use the link below to create your password and finish setting up your account:",
+    input.setupUrl,
+    "",
+    "This setup link is unique to your account. If you did not request this, you can ignore this email.",
+  ].join("\n");
+  return { subject, html, text };
 }
 
 export function buildInviteUserEmail(input: {

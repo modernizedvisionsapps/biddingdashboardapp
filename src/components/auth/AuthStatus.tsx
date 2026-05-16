@@ -72,16 +72,23 @@ export function AuthStatus({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       {state.permissions && !state.permissions.canWrite ? (
-        <div className="border-b border-[var(--app-border)] bg-[var(--app-accent-soft)] px-6 py-3 text-sm text-[var(--app-warning)]">
-          Your subscription is not current. You can view existing data, but editing and automations are disabled.
-          {state.permissions.isOwner ? (
-            <>
-              {" "}
-              <Link className="font-medium underline" href="/app/settings/billing">
+        <div className="border-b border-[var(--app-border)] bg-[var(--app-bg)] px-6 py-5">
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-center gap-2 rounded-[24px] border border-[var(--app-accent)] bg-[var(--app-accent-soft)] px-6 py-5 text-center shadow-sm">
+            <p className="font-[family-name:var(--font-chivo)] text-2xl font-semibold tracking-tight text-[var(--app-warning)]">
+              Your subscription is not current.
+            </p>
+            <p className="max-w-2xl text-sm leading-7 text-[var(--app-warning)]">
+              Your company can still view existing data, but creating or editing records is disabled until billing is updated.
+            </p>
+            {state.permissions.isOwner ? (
+              <Link
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[var(--app-warning)] bg-white px-4 text-sm font-medium text-[var(--app-warning)] transition hover:bg-[var(--app-warning-soft)]"
+                href="/app/settings/billing"
+              >
                 Manage billing
               </Link>
-            </>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       ) : null}
       {children}
