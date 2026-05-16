@@ -17,5 +17,5 @@ binding = "ASSETS"
 # Wrangler-managed D1 binding for this app.
 [[d1_databases]]
 binding = "DB"
-database_name = "apptemplate-db"
-database_id = "a1a4d5cf-ba68-4fad-af71-68c1767b6aec"
+database_name = "bidding-dashboard-db"
+database_id = "e57b6da5-8706-40e2-b0b3-60018f9c4007"
