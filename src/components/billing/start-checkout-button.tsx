@@ -32,7 +32,17 @@ async function parseCheckoutResponse(response: Response) {
   }
 }
 
-export function StartCheckoutButton() {
+export function StartCheckoutButton({
+  label = "Start Checkout",
+  loadingLabel = "Starting Checkout...",
+  className = "w-fit border border-black px-4 py-2",
+  errorClassName = "",
+}: {
+  label?: string;
+  loadingLabel?: string;
+  className?: string;
+  errorClassName?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,10 +84,10 @@ export function StartCheckoutButton() {
 
   return (
     <div className="flex flex-col gap-2">
-      <button className="w-fit border border-black px-4 py-2" onClick={() => void handleStartCheckout()} type="button">
-        {loading ? "Starting Checkout..." : "Start Checkout"}
+      <button className={className} onClick={() => void handleStartCheckout()} type="button">
+        {loading ? loadingLabel : label}
       </button>
-      {error ? <p>{error}</p> : null}
+      {error ? <p className={errorClassName}>{error}</p> : null}
     </div>
   );
 }
